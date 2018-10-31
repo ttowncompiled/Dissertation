@@ -23,7 +23,7 @@
             .col{
                 height: 100%;
             }
-            #rust{
+            #prog{
                 height: 100%;
                 width: 100%;
             }
@@ -67,7 +67,7 @@
         <div class="container py-3">
             <div class="row">
                 <div class="col-6">
-                    <textarea id="rust" placeholder="Rust" class="shadow px-3"></textarea>
+                    <textarea id="prog" placeholder="C" class="shadow px-3"></textarea>
                     <pre id="pre"></pre>
                 </div>
                 <div class="col-6">
@@ -83,28 +83,31 @@
             const backward = $('#backward');
             const run = $('#run');
             const forward = $('#forward');
-            const rust = $('#rust');
+            const prog = $('#prog');
             const pre = $('#pre');
+
             let lines = [];
             let idx = 0;
-            rust.val('fn main() {\n    \n}\n');
-            rust.keydown((e) => {
+
+            prog.val('int main() {\n    \n}\n');
+            prog.keydown((e) => {
                 let keyCode = e.keyCode || e.which;
                 if (keyCode === 9) {
                     e.preventDefault();
-                    let caretPosition = rust.get(0).selectionStart;
-                    rust.val(rust.val().substring(0, caretPosition) + "    " + rust.val().substring(caretPosition, rust.val().length));
-                    rust.get(0).selectionStart = caretPosition+4;
-                    rust.get(0).selectionEnd = caretPosition+4;
+                    let caretPosition = prog.get(0).selectionStart;
+                    prog.val(prog.val().substring(0, caretPosition) + "    " + prog.val().substring(caretPosition, prog.val().length));
+                    prog.get(0).selectionStart = caretPosition+4;
+                    prog.get(0).selectionEnd = caretPosition+4;
                 }
             });
+
             run.click(() => {
                 run.toggleClass('btn-outline-success');
                 run.toggleClass('btn-outline-danger');
                 if (run.hasClass('btn-outline-success')) {
                     run.html($('<span class="oi oi-media-play"></span>'));
                     pre.hide();
-                    rust.show();
+                    prog.show();
                     if (! backward.hasClass('disabled')) {
                         backward.addClass('disabled');
                     }
@@ -113,8 +116,8 @@
                     }
                 } else {
                     run.html($('<span class="oi oi-media-stop"></span>'));
-                    rust.hide();
-                    pre.html($(rust.val().split('\n').map((str) => '<code class="rust"> ' + str + '</code>').join('')));
+                    prog.hide();
+                    pre.html($(prog.val().split('\n').map((str) => '<code class="c"> ' + str + '</code>').join('')));
                     $('pre code').each((i, block) => hljs.highlightBlock(block));
                     pre.show();
                     lines = $('code');
@@ -125,6 +128,7 @@
                     }
                 }
             });
+
             backward.click(() => {
                 if (idx == 0 || lines.length <= 1) {
                     return;
@@ -139,6 +143,7 @@
                     forward.toggleClass('disabled');
                 }
             });
+
             forward.click(() => {
                 if (idx == lines.length-1 || lines.length <= 1) {
                     return;
@@ -153,6 +158,7 @@
                     backward.toggleClass('disabled');
                 }
             });
+
             // create an array with nodes
             let nodes = new vis.DataSet([
                 {id: 1, label: 'Node 1'},
