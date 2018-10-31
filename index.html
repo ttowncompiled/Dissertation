@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/lib/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/lib/css/open-iconic-bootstrap.min.css">
+        <link rel="stylesheet" href="/lib/css/atom-one-light.css">
+        <link rel="stylesheet" href="/lib/css/vis.min.css">
+        <style>
+            html{
+                height: 100%;
+            }
+            body{
+                height: 90%;
+            }
+            .container{
+                height: 100%;
+            }
+            .row{
+                height: 100%;
+            }
+            .col{
+                height: 100%;
+            }
+            #rust{
+                height: 100%;
+                width: 100%;
+            }
+            #ast{
+                height: 100%;
+                width: 100%;
+            }
+            pre{
+                counter-reset: line;
+                display: none;
+            }
+            code{
+                counter-increment: line;
+            }
+            code:before{
+                content: counter(line);
+            }
+            code:before{
+                -webkit-user-select: none;
+            }
+            .mark{
+                background-color: rgb(158, 160, 165);
+            }
+            .shadow {
+                -webkit-box-shadow: 3px 3px 5px 6px #ccc;
+                -moz-box-shadow:    3px 3px 5px 6px #ccc;
+                box-shadow:         3px 3px 5px 6px #ccc;
+            }
+        </style>
+        <title>Iterator</title>
+        <nav class="navbar navbar-dark bg-dark">
+            <span class="navbar-brand"><span class="oi oi-pulse"></span>&nbsp;Iterator</span>
+            <form class="form-inline">
+                <button id="backward" class="btn btn-outline-secondary disabled"><span class="oi oi-media-step-backward"></span></button>
+                <button id="run" class="btn btn-outline-success mx-3 my-2 my-sm-0"><span class="oi oi-media-play"></span></button>
+                <button id="forward" class="btn btn-outline-secondary disabled"><span class="oi oi-media-step-forward"></span></button>
+            </form>
+        </nav>
+    </head>
+    <body>
+        <div class="container py-3">
+            <div class="row">
+                <div class="col-6">
+                    <textarea id="rust" placeholder="Rust" class="shadow px-3"></textarea>
+                    <pre id="pre"></pre>
+                </div>
+                <div class="col-6">
+                    <div id="ast" class="container shadow"</div>
+                </div>
+            </div>
+        </div>
+        <script src="/lib/js/jquery.min.js"></script>
+        <script src="/lib/js/bootstrap.bundle.min.js"></script>
+        <script src="/lib/js/highlight.js"></script>
+        <script src="/lib/js/vis.min.js"></script>
+        <script>
+            const backward = $('#backward');
+            const run = $('#run');
+            const forward = $('#forward');
+            const rust = $('#rust');
+            const pre = $('#pre');
+            let lines = [];
+            let idx = 0;
+            rust.val('fn main() {\n    \n}\n');
+            rust.keydown((e) => {
+                let keyCode = e.keyCode || e.which;
+                if (keyCode === 9) {
+                    e.preventDefault();
+                    let caretPosition = rust.get(0).selectionStart;
+                    rust.val(rust.val().substring(0, caretPosition) + "    " + rust.val().substring(caretPosition, rust.val().length));
+                    rust.get(0).selectionStart = caretPosition+4;
+                    rust.get(0).selectionEnd = caretPosition+4;
+                }
+            });
+            run.click(() => {
+                run.toggleClass('btn-outline-success');
+                run.toggleClass('btn-outline-danger');
+                if (run.hasClass('btn-outline-success')) {
+                    run.html($('<span class="oi oi-media-play"></span>'));
+                    pre.hide();
+                    rust.show();
+                    if (! backward.hasClass('disabled')) {
+                        backward.addClass('disabled');
+                    }
+                    if (! forward.hasClass('disabled')) {
+                        forward.addClass('disabled');
+                    }
+                } else {
+                    run.html($('<span class="oi oi-media-stop"></span>'));
+                    rust.hide();
+                    pre.html($(rust.val().split('\n').map((str) => '<code class="rust"> ' + str + '</code>').join('')));
+                    $('pre code').each((i, block) => hljs.highlightBlock(block));
+                    pre.show();
+                    lines = $('code');
+                    idx = 0;
+                    $(lines.get(idx)).toggleClass('mark');
+                    if (lines.length > 1) {
+                        forward.toggleClass('disabled');
+                    }
+                }
+            });
+            backward.click(() => {
+                if (idx == 0 || lines.length <= 1) {
+                    return;
+                }
+                $(lines.get(idx)).toggleClass('mark');
+                idx--;
+                $(lines.get(idx)).toggleClass('mark');
+                if (idx == 0) {
+                    backward.toggleClass('disabled');
+                }
+                if (idx == lines.length-2 && lines.length > 1) {
+                    forward.toggleClass('disabled');
+                }
+            });
+            forward.click(() => {
+                if (idx == lines.length-1 || lines.length <= 1) {
+                    return;
+                }
+                $(lines.get(idx)).toggleClass('mark');
+                idx++;
+                $(lines.get(idx)).toggleClass('mark');
+                if (idx == lines.length-1) {
+                    forward.toggleClass('disabled');
+                }
+                if (idx == 1 && lines.length > 1) {
+                    backward.toggleClass('disabled');
+                }
+            });
+            // create an array with nodes
+            let nodes = new vis.DataSet([
+                {id: 1, label: 'Node 1'},
+                {id: 2, label: 'Node 2'},
+                {id: 3, label: 'Node 3'},
+                {id: 4, label: 'Node 4'},
+                {id: 5, label: 'Node 5'}
+            ]);
+
+            // create an array with edges
+            let edges = new vis.DataSet([
+                {from: 1, to: 3},
+                {from: 1, to: 2},
+                {from: 2, to: 4},
+                {from: 2, to: 5}
+            ]);
+
+            // create a network
+            let container = document.getElementById('ast');
+
+            // provide the data in the vis format
+            let data = {
+                nodes: nodes,
+                edges: edges
+            };
+
+            let locales = {
+                en: {
+                    edit: 'Edit',
+                    del: 'Delete selected',
+                    back: 'Back',
+                    addNode: 'Add Node',
+                    addEdge: 'Add Edge',
+                    editNode: 'Edit Node',
+                    editEdge: 'Edit Edge',
+                    addDescription: 'Click in an empty space to place a new node.',
+                    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+                    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+                    createEdgeError: 'Cannot link edges to a cluster.',
+                    deleteClusterError: 'Clusters cannot be deleted.',
+                    editClusterError: 'Clusters cannot be edited.'
+                }
+            }
+            let options = {
+                autoResize: true,
+                height: '100%',
+                width: '100%',
+                locale: 'en',
+                locales: locales,
+                clickToUse: false,
+            };
+
+            // initialize your network!
+            let network = new vis.Network(container, data, options);
+        </script>
+    </body>
+</html>
+
